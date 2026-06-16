@@ -63,7 +63,8 @@ try:
     X_class = df.drop(columns=['ID', 'Target_Cannabis'] + fitur_zat)
     y_class = df['Target_Cannabis']
 
-    df_numeric = df.drop(columns=['ID']).copy()
+    # PERBAIKAN KRUSIAL: Membuang 'Target_Cannabis' agar tepat 31 kolom untuk Anomali
+    df_numeric = df.drop(columns=['ID', 'Target_Cannabis']).copy()
     for col in fitur_zat:
         df_numeric[col] = df_numeric[col].str.replace('CL', '').astype(int)
 
@@ -113,6 +114,9 @@ try:
         'Oscore': sim_oscore, 'Ascore': sim_ascore, 'Cscore': sim_cscore, 
         'Impulsive': sim_imp, 'SS': sim_ss
     }])
+    
+    # Samakan urutan kolom untuk klasifikasi
+    input_sim_class = input_sim_class[X_class.columns]
     input_class_scaled = scaler_class.transform(input_sim_class)
 
     # Eksekusi Kalkulasi Prediksi Klasifikasi
@@ -124,6 +128,8 @@ try:
     for col in fitur_zat:
         input_sim_anomaly[col] = 0 # Default asumsi simulasi tidak ada konsumsi zat lain
         
+    # Samakan urutan kolom persis dengan df_numeric (31 kolom)
+    input_sim_anomaly = input_sim_anomaly[df_numeric.drop(columns=['Anomaly_Label'], errors='ignore').columns]
     input_anomaly_scaled = scaler_anomaly.transform(input_sim_anomaly)
 
     # Eksekusi Prediksi Anomali
