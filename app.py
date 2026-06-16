@@ -174,7 +174,7 @@ try:
     with tab2:
         st.write("### Deteksi Pola Menyimpang")
         st.info("Fungsi: Mengisolasi responden dengan perilaku yang sangat tidak wajar dibanding mayoritas masyarakat umum.")
-        c1, c2 = st.columns(3)
+        c1, c2, c3 = st.columns(3)
         c1.metric("Subjek Wajar", f"{(df_numeric['Anomaly_Label'] == 1).sum()} Orang")
         c2.metric("Subjek Ekstrem", f"{(df_numeric['Anomaly_Label'] == -1).sum()} Orang")
         c3.metric("Rasio Penyimpangan", f"{((df_numeric['Anomaly_Label'] == -1).sum()/len(df_numeric))*100:.2f}%")
