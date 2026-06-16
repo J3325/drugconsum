@@ -27,16 +27,16 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Baris Metrik Pintar (Quick Stats) Langsung di Header
+# Baris Metrik Pintar (Teks sudah diperpendek agar tidak terpotong)
 col_h1, col_h2, col_h3, col_h4 = st.columns(4)
 with col_h1:
-    st.metric(label="Basis Dataset", value="UCI Drug Addiction")
+    st.metric(label="Sumber Data", value="UCI Repository")
 with col_h2:
-    st.metric(label="Total Sampel Evaluasi", value="1.885 Responden")
+    st.metric(label="Total Sampel", value="1.885 Orang")
 with col_h3:
-    st.metric(label="Fokus Target Klasifikasi", value="Cannabis User")
+    st.metric(label="Target Prediksi", value="Cannabis User")
 with col_h4:
-    st.metric(label="Metode Deteksi Anomali", value="Unsupervised Outliers")
+    st.metric(label="Model Anomali", value="Isolation Forest")
 
 st.write("")
 st.info("""
@@ -93,21 +93,21 @@ try:
     # 2. SIDEBAR PANEL SIMULATOR INTERAKTIF
     # ==========================================
     st.sidebar.header("Simulator Pengujian Sifat")
-    st.sidebar.write("Sesuaikan parameter kepribadian di bawah ini untuk melihat hasil keputusan model secara langsung:")
+    st.sidebar.write("Sesuaikan parameter kepribadian di bawah ini untuk melihat hasil keputusan model:")
     
     sim_age = st.sidebar.slider("Skor Usia (Terstandarisasi)", -1.0, 2.6, 0.0)
     sim_gender = st.sidebar.selectbox("Gender Objek", ["Pria", "Wanita"])
     sim_gender_val = -0.48246 if sim_gender == "Pria" else 0.48246
     sim_edu = st.sidebar.slider("Skor Tingkat Pendidikan", -2.4, 2.0, 0.0)
-    sim_nscore = st.sidebar.slider("Neurotisisme (Tingkat Kecemasan)", -3.5, 3.5, 0.0)
-    sim_escore = st.sidebar.slider("Ekstraversi (Kemampuan Bersosialisasi)", -3.5, 3.5, 0.0)
-    sim_oscore = st.sidebar.slider("Keterbukaan terhadap Pengalaman Baru", -3.5, 3.5, 0.0)
-    sim_ascore = st.sidebar.slider("Keramahan Sosial (Agreeableness)", -3.5, 3.5, 0.0)
-    sim_cscore = st.sidebar.slider("Kedisiplinan Diri (Conscientiousness)", -3.5, 3.5, 0.0)
+    sim_nscore = st.sidebar.slider("Neurotisisme (Kecemasan)", -3.5, 3.5, 0.0)
+    sim_escore = st.sidebar.slider("Ekstraversi (Sosialisasi)", -3.5, 3.5, 0.0)
+    sim_oscore = st.sidebar.slider("Keterbukaan Pengalaman Baru", -3.5, 3.5, 0.0)
+    sim_ascore = st.sidebar.slider("Keramahan (Agreeableness)", -3.5, 3.5, 0.0)
+    sim_cscore = st.sidebar.slider("Kedisiplinan (Conscientiousness)", -3.5, 3.5, 0.0)
     sim_imp = st.sidebar.slider("Sifat Impulsif", -2.5, 2.5, 0.0)
     sim_ss = st.sidebar.slider("Sensation Seeking (Pencarian Sensasi)", -2.1, 2.1, 0.0)
 
-    # Menggabungkan Input untuk Simulator Klasifikasi (12 Kolom)
+    # Menggabungkan Input untuk Simulator Klasifikasi
     input_sim_class = pd.DataFrame([{
         'Age': sim_age, 'Gender': sim_gender_val, 'Education': sim_edu, 
         'Country': 0.2, 'Ethnicity': -0.1, 'Nscore': sim_nscore, 'Escore': sim_escore, 
@@ -115,55 +115,49 @@ try:
         'Impulsive': sim_imp, 'SS': sim_ss
     }])
     
-    # Samakan urutan kolom untuk klasifikasi
     input_sim_class = input_sim_class[X_class.columns]
     input_class_scaled = scaler_class.transform(input_sim_class)
 
-    # Eksekusi Kalkulasi Prediksi Klasifikasi
     sim_pred_class = model_dt.predict(input_class_scaled)
     sim_pred_proba = model_dt.predict_proba(input_class_scaled)
 
-    # Persiapan Data untuk Simulator Anomali (Butuh 31 Kolom)
+    # Persiapan Data untuk Simulator Anomali
     input_sim_anomaly = input_sim_class.copy()
     for col in fitur_zat:
-        input_sim_anomaly[col] = 0 # Default asumsi simulasi tidak ada konsumsi zat lain
+        input_sim_anomaly[col] = 0 
         
-    # Samakan urutan kolom persis dengan df_numeric (31 kolom)
     input_sim_anomaly = input_sim_anomaly[df_numeric.drop(columns=['Anomaly_Label'], errors='ignore').columns]
     input_anomaly_scaled = scaler_anomaly.transform(input_sim_anomaly)
-
-    # Eksekusi Prediksi Anomali
     sim_pred_anomaly = model_if.predict(input_anomaly_scaled)
 
     # ==========================================
     # 3. RINGKASAN EKSEKUTIF (EXECUTIVE SUMMARY)
     # ==========================================
-    st.markdown("""
-        <div style='background-color: #E8F8F5; padding: 15px; border-radius: 5px; border-left: 5px solid #1ABC9C; margin-bottom: 20px;'>
-            <h4 style='margin-top: 0; color: #0E6251;'>💡 Kesimpulan Utama Analisis Dasbor (Executive Summary)</h4>
-            <ol style='margin-bottom: 0; color: #117864; font-size: 15px;'>
-                <li><b>Prediksi Akurat (~78%):</b> Algoritma Klasifikasi membuktikan bahwa profil psikologis kepribadian seseorang (terutama tingkat neurotisisme dan pencarian sensasi) memiliki korelasi kuat untuk mendeteksi risiko individu menjadi pengguna zat adiktif.</li>
-                <li><b>Deteksi Kelompok Ekstrem (5%):</b> Algoritma Deteksi Anomali berhasil memisahkan secara tepat 95 orang yang memiliki rekam jejak penyimpangan perilaku paling ekstrem dibandingkan dengan pola normal 1.790 responden lainnya di dalam dataset.</li>
-            </ol>
-        </div>
-    """, unsafe_allow_html=True)
+    st.success("""
+    **Kesimpulan Utama Analisis Dasbor (Executive Summary)**
+    
+    1. **Prediksi Akurat (~78%):** Algoritma Klasifikasi membuktikan bahwa profil psikologis kepribadian (terutama neurotisisme dan pencarian sensasi) memiliki korelasi kuat untuk memprediksi risiko individu menjadi pengguna zat adiktif.
+    2. **Deteksi Kelompok Ekstrem (5%):** Algoritma Deteksi Anomali berhasil memisahkan secara tepat 95 orang yang memiliki rekam jejak penyimpangan perilaku paling ekstrem dibandingkan dengan pola normal 1.790 responden lainnya.
+    """)
 
     # ==========================================
     # 4. MONITOR OUTPUT LIVE SIMULATOR
     # ==========================================
     st.write("### Hasil Pengujian Mandiri via Simulator Sidebar")
     col_s1, col_s2 = st.columns(2)
+    
+    # PERBAIKAN: Menambahkan atribut 'color: #333333' (Abu-abu sangat gelap) agar teks menolak menjadi putih di Dark Mode
     with col_s1:
         if sim_pred_class[0] == 1:
-            st.markdown(f"<div style='background-color: #FADBD8; padding: 15px; border-radius: 5px; border-left: 5px solid #E74C3C;'><b>Hasil Prediksi Klasifikasi:</b> Berisiko Tinggi (User)<br>Probabilitas Keyakinan Model: {sim_pred_proba[0][1]*100:.2f}%</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='background-color: #FADBD8; color: #641E16; padding: 15px; border-radius: 5px; border-left: 5px solid #E74C3C;'><b>Hasil Prediksi Klasifikasi:</b> Berisiko Tinggi (User)<br>Probabilitas Keyakinan Model: {sim_pred_proba[0][1]*100:.2f}%</div>", unsafe_allow_html=True)
         else:
-            st.markdown(f"<div style='background-color: #D4EFDF; padding: 15px; border-radius: 5px; border-left: 5px solid #2ECC71;'><b>Hasil Prediksi Klasifikasi:</b> Berisiko Rendah (Non-User)<br>Probabilitas Keyakinan Model: {sim_pred_proba[0][0]*100:.2f}%</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='background-color: #D4EFDF; color: #145A32; padding: 15px; border-radius: 5px; border-left: 5px solid #2ECC71;'><b>Hasil Prediksi Klasifikasi:</b> Berisiko Rendah (Non-User)<br>Probabilitas Keyakinan Model: {sim_pred_proba[0][0]*100:.2f}%</div>", unsafe_allow_html=True)
             
     with col_s2:
         if sim_pred_anomaly[0] == -1:
-            st.markdown("<div style='background-color: #FDEBD0; padding: 15px; border-radius: 5px; border-left: 5px solid #E67E22;'><b>Status Pola Perilaku:</b> Terdeteksi Anomali (Outlier)<br>Kombinasi skor psikologis ini dinilai ekstrem atau sangat langka dalam populasi.</div>", unsafe_allow_html=True)
+            st.markdown("<div style='background-color: #FDEBD0; color: #7E5109; padding: 15px; border-radius: 5px; border-left: 5px solid #E67E22;'><b>Status Pola Perilaku:</b> Terdeteksi Anomali (Outlier)<br>Kombinasi skor psikologis ini dinilai ekstrem / langka.</div>", unsafe_allow_html=True)
         else:
-            st.markdown("<div style='background-color: #EBF5FB; padding: 15px; border-radius: 5px; border-left: 5px solid #3498DB;'><b>Status Pola Perilaku:</b> Normal (Inlier)<br>Kombinasi skor psikologis berada pada batasan wajar persebaran data umum.</div>", unsafe_allow_html=True)
+            st.markdown("<div style='background-color: #EBF5FB; color: #154360; padding: 15px; border-radius: 5px; border-left: 5px solid #3498DB;'><b>Status Pola Perilaku:</b> Normal (Inlier)<br>Kombinasi skor psikologis berada pada batasan wajar populasi.</div>", unsafe_allow_html=True)
 
     st.divider()
 
@@ -174,8 +168,8 @@ try:
     col_d1, col_d2 = st.columns([1, 3])
     with col_d1:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.metric(label="Volume Data Observasi", value=f"{df.shape[0]} Responden")
-        st.metric(label="Jumlah Fitur Evaluasi", value=f"{df.shape[1]} Kolom Atribut")
+        st.metric(label="Volume Data", value=f"{df.shape[0]} Baris")
+        st.metric(label="Jumlah Fitur", value=f"{df.shape[1]} Kolom")
     with col_d2:
         st.write("Struktur Data Riil (Fitur Kepribadian Berupa Nilai Terstandarisasi):")
         st.dataframe(df.head(4), use_container_width=True)
@@ -185,7 +179,7 @@ try:
     # ==========================================
     # 6. NAVIGASI TAB UTAMA MODEL
     # ==========================================
-    tab_klasifikasi, tab_anomali = st.tabs(["🎯 Model Prediksi Klasifikasi Risiko", "🕵️ Sistem Deteksi Anomali Perilaku"])
+    tab_klasifikasi, tab_anomali = st.tabs(["Model Prediksi Klasifikasi Risiko", "🕵️ Sistem Deteksi Anomali Perilaku"])
 
     # ---------------------------------------------------------
     # TAB 1: MODEL PREDIKSI KLASIFIKASI (DECISION TREE)
@@ -193,7 +187,6 @@ try:
     with tab_klasifikasi:
         st.write("### Evaluasi Model Prediksi Risiko Penggunaan Cannabis")
         
-        # PERBAIKAN: Mengganti st.help dengan st.info
         st.info("**Fungsi Utama Model Ini:** Menjawab pertanyaan *'Apakah seseorang cenderung menjadi pengguna berdasarkan sifat psikologisnya?'* Model dilatih menggunakan porsi data latih untuk memetakan aturan klasifikasi biner otomatis (User versus Non-User).", icon="💡")
         
         col_m1, col_m2 = st.columns([1, 1])
@@ -236,7 +229,6 @@ try:
     with tab_anomali:
         st.write("### Deteksi Pola Menyimpang Menggunakan Isolation Forest")
         
-        # PERBAIKAN: Mengganti st.help dengan st.info
         st.info("**Fungsi Utama Model Ini:** Mengisolasi objek/responden minoritas yang memiliki kombinasi sifat kepribadian serta riwayat konsumsi lintas zat yang sangat tidak wajar (ekstrem) dibanding mayoritas masyarakat umum.", icon="💡")
         
         anomali_count = (df_numeric['Anomaly_Label'] == -1).sum()
@@ -245,11 +237,11 @@ try:
         
         col_a1, col_a2, col_a3 = st.columns(3)
         with col_a1:
-            st.metric(label="Subjek Berperilaku Wajar (Inliers)", value=f"{normal_count} Orang")
+            st.metric(label="Subjek Wajar (Inliers)", value=f"{normal_count} Orang")
         with col_a2:
-            st.metric(label="Subjek Terdeteksi Ekstrem (Outliers)", value=f"{anomali_count} Orang")
+            st.metric(label="Subjek Ekstrem (Outliers)", value=f"{anomali_count} Orang")
         with col_a3:
-            st.metric(label="Rasio Kontaminasi Penyimpangan", value=f"{(anomali_count/total_data)*100:.2f}%")
+            st.metric(label="Rasio Penyimpangan", value=f"{(anomali_count/total_data)*100:.2f}%")
             
         st.divider()
         
